@@ -63,11 +63,13 @@ def signup():
         return redirect(url_for('login'))
     return render_template('signup.html', title='Sign up', form=form)
 
+
  
 @app.route('/logout')
 def logout():
     logout_user()
     return redirect(url_for('login'))
+
 
 @app.route('/profile')
 def profile():
@@ -104,6 +106,7 @@ def profile_edit():
 def chat():
     pass
 
+
 @app.route('/search/users', methods=["GET", "POST"])
 def search_users():
     if request.method == 'POST':
@@ -117,3 +120,8 @@ from app.seeds import create_data
 def seed_data():
     create_data()
     return redirect('/')
+
+@app.route('/review')
+def review():
+    return render_template('review.html')
+
