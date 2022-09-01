@@ -7,6 +7,7 @@ from flask import url_for
 from flask import session
 from flask_login import current_user, login_user, logout_user
 from flask_socketio import join_room, leave_room, emit
+from sqlalchemy.sql import func
 from app.forms import *
 from app import app, socket_app
 from app.models import *
@@ -22,6 +23,7 @@ online_users_sid = []
 def index():
     return redirect (url_for("login"))
     return {200: "OK"}
+
 @app.route('/home')
 def home():
     print("Online user: ",online_users)
@@ -139,10 +141,16 @@ def search_users():
 # @app.route("/chatroom/<int:room_name>&&<int:to_id>", methods=['GET', 'POST'])
 @app.route("/chat", methods=['GET', 'POST'])
 def chat():
+    print(session)
     if request.args.get('room'):
         session['room'] = request.args.get('room')
-        
-    return render_template("chat.html", title="Chat", session=session, current_user=current_user, to_user=request.args.get("user"))
+
+    if request.args.get("to_user"):
+        to_user_id = request.args.get("to_user")
+        to_user = User.query.filter(User.id == to_user_id).first()
+    print("DEF CHAT " + current_user.name + " have session below")
+    print(session)
+    return render_template("chat.html", title="Chat", session=session, current_user=current_user, to_user=to_user)
 
 @app.route("/wait_room", methods=['GET', 'POST'])
 def request_chat():
@@ -161,15 +169,15 @@ def request_chat():
             "name": current_user.name,
         }
         Notice(data).save()
-    return render_template("wait_room.html", title="Wait Room", session=session)
+    return render_template("wait_room.html", title="Wait Room", session=session, to_id=request.form['ToUserID'])
 
 @app.route("/invite_room")
 def process_invite_chat():
-    user = request.args.get("user_id")
+    user_id = request.args.get("user_id")
     room = request.args.get("room")
     content = request.args.get("content")
     print(room)
-    return render_template("invite_chat.html", title= "Invite Room", room=room, content=content, user=user)
+    return render_template("invite_chat.html", title= "Invite Room", room=room, content=content, user_id=user_id)
 
 ######################  CHAT  ####################################
 
@@ -194,7 +202,7 @@ def text(message):
     room = session.get('room')
     data = {
         "type": "CHAT",
-        "from": current_user.name,
+        "from": message['user_id'],
         "msg": message['msg']
     }
     print(data)
@@ -235,7 +243,6 @@ def accept(data):
     #     "msg": current_user.name + ' has entered the room.'
     # }
     data = {
-        ''
         'msg': "Your invitation accepted"
     }
     emit('go_to_chat', data, namespace="/wait",broadcast=True)
@@ -249,15 +256,14 @@ def seed_data():
 
 @app.route('/review', methods=["GET", "POST"])
 def review_result():
-    to_user = request.args.get("to_user")
-    print(to_user)
 
+    to_user_id = request.args.get("to_user_id")
     if request.method == "POST":
         data = {
             "content": request.form['user_review'],
             "score": request.form['score'],
             "fk_user_from": current_user.id,
-            "fk_user_to": to_user.id,
+            "fk_user_to": int(request.form['to_user_id'])
         }
         review = Review(data)
         try:
@@ -270,7 +276,7 @@ def review_result():
             return redirect(url_for('review_result'))
 
     user = current_user
-    return render_template('review.html', user=user)
+    return render_template('review.html', user=user, to_user_id=to_user_id)
 
     
 @app.route('/list-review', methods=["GET"])

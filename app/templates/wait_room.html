@@ -27,7 +27,8 @@
                 socket.disconnect();
                 socket = io.connect('http://' + document.domain + ':' + location.port + '/chat' );
                 socket.emit('join', {})
-                window.location.href = "{{ url_for('chat') }}";
+            
+                window.location.href = "{{ url_for('chat')}}?room={{session['room']}}&&to_user={{to_id}}";
             });
             socket.on('go_to_home', () => {
                 socket.disconnect();
