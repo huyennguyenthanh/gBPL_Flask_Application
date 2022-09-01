@@ -55,7 +55,7 @@
           {% if notices|length > 0 %}
           {% for notice in notices %}
           <li>
-            <a class="dropdown-item" href="{{ url_for('process_invite_chat', room=notice.room, content=notice.content, user=notice.from_id)}}">{{ notice.content }}</a>
+            <a class="dropdown-item" href="{{ url_for('process_invite_chat', room=notice.room, content=notice.content, user_id=notice.from_id | string)}}">{{ notice.content }}</a>
           </li>
           {% endfor %}
           {% else %}

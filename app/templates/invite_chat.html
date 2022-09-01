@@ -1,5 +1,7 @@
+
 {% extends "base.html" %}
 {% block content %}
+
 
     <div class="w-100 h-100 d-flex justify-content-center align-items-center">
         <button type="button" class="btn btn-danger" onclick=refuse()>Refuse and Return Home</button>
@@ -44,7 +46,8 @@
                 socket.disconnect();
                 socket = io.connect('http://' + document.domain + ':' + location.port + '/chat');
                 socket.emit('join', {})
-                window.location.href = "{{ url_for('chat', room=room, user=user) }}";
+             
+                window.location.href = "{{ url_for('chat')}}?room={{room}}&&to_user={{user_id}}";
             });
         }
 
