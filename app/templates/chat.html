@@ -1,81 +1,95 @@
-
 {% extends "base.html" %}
 {% block content %}
-    <div class="p-2">
-        <h1>Room : {{ session['room'] }}</h1>
-        <h2>Between : {{ current_user.name }} and {{ to_user.name}}</h2>
-    </div>
-    <div class="container">
-        <textarea class="form-control" id="chat" cols="70" rows="10" placeholder="No messages yet. Start one..." readonly></textarea>
-        <div class="Chat mt-2">
-            <div class="d-flex">
-                <div class="form-outline w-100">
-                    <input type="text" class="form-control form-control-lg" id="myInput"/>
-                    <label class="form-label" for="myInput">Enter your message</label>
-                </div>
-                <div class="ms-1">
-                    <button type="button" id="send" class="btn btn-success btn-lg">SEND</button>
-                </div>
+<div class="p-2">
+    <h1>Room : {{ session['room'] }}</h1>
+    <h2>Between : {{ current_user.name }} and {{ to_user.name}}</h2>
+</div>
+<div class="container">
+    <textarea class="form-control" id="chat" cols="70" rows="10" placeholder="No messages yet. Start one..."
+        readonly></textarea>
+    <div class="Chat mt-2">
+        <div class="d-flex">
+            <div class="form-outline w-100">
+                <input type="text" class="form-control form-control-lg" id="myInput" />
+                <label class="form-label" for="myInput">Enter your message</label>
             </div>
-            <button type="button" class="btn btn-danger mt-3" onclick=leave_room()>Leave this Chat</button>
+            <div class="ms-1">
+                <button type="button" id="send" class="btn btn-success btn-lg">SEND</button>
+            </div>
         </div>
-
+        <button type="button" class="btn btn-danger mt-3" onclick=leave_room()>Leave this Chat</button>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.min.js"></script>
-    <script>
-        var socket;
-        $(document).ready(function(){
-            socket = io.connect('http://' + document.domain + ':' + location.port + '/chat' );
-            
-            socket.on('connect', function() {
-                connected = true;
-                socket.emit('join', {});
-            });
-            socket.on('disconnect', () => {
-                connected = false;
-            });
-            socket.on('status', function(data) {
-                    $('#chat').val($('#chat').val() + '<' + data.msg + '>\n');
-                    $('#chat').scrollTop($('#chat')[0].scrollHeight);
-                });
-            socket.on('message', function(data) {
+</div>
 
-                console.log(data)
-                    $('#chat').val($('#chat').val() + data.msg + '\n');
-                    $('#chat').scrollTop($('#chat')[0].scrollHeight);
-                });
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.min.js"></script>
+<script>
+    var socket;
+    $(document).ready(function () {
+        socket = io.connect('http://' + document.domain + ':' + location.port + '/chat');
 
-            var callback = function() {
-                
-                var text = $('#myInput').val();
-                console.log(text)
-                $('#myInput').val('');
-                var data = {
-                    'msg': text,
-                    'user_id': "{{ current_user.id}}"
-                }
-                socket.emit('text', data);
-            }
-            $('#myInput').keypress(function(e) {
-                    if(event.which == '13'){
-                        callback()   
-                    }
-            });
-            $('#send').click(callback)
+        socket.on('connect', function () {
+            connected = true;
+            socket.emit('join', {});
         });
-        function leave_room() {
-                data = {
-                    'event': 'leave',
-                    'room': "{{ session['room'] }}",
-                    'msg':  "The friend leave the chat."
-                }
-                socket.emit('left', data, function() {
-                    socket.disconnect();
-                    
-                    window.location.href = "{{ url_for('review_result')}}?to_user_id={{to_user.id}}";
+        socket.on('disconnect', () => {
+            connected = false;
+        });
+        socket.on('status', function (data) {
+            $('#chat').val($('#chat').val() + '<' + data.msg + '>\n');
+            $('#chat').scrollTop($('#chat')[0].scrollHeight);
+        });
+        socket.on('message', function (data) {
+            var today = new Date();
+            var date = today.getFullYear() + '/' + (today.getMonth() + 1) + '/' + today.getDate();
+            var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+            var dateTime = date + '  ' + time;
 
-                });
+
+
+            console.log(data);
+            if (data.from == "{{current_user.id}}") {
+                $('#chat').val($('#chat').val() + dateTime + ' ({{current_user.name}}) : ' + data.msg + '\n');
+                $('#chat').scrollTop($('#chat')[0].scrollHeight);
             }
-    </script>
+            else {
+                $('#chat').val($('#chat').val() + dateTime + ' ({{to_user.name}}) : ' + data.msg + '\n');
+                $('#chat').scrollTop($('#chat')[0].scrollHeight);
+            }
+
+
+        });
+
+        var callback = function () {
+
+            var text = $('#myInput').val();
+            console.log(text)
+            $('#myInput').val('');
+            var data = {
+                'msg': text,
+                'user_id': "{{ current_user.id}}"
+            }
+            socket.emit('text', data);
+        }
+        $('#myInput').keypress(function (e) {
+            if (event.which == '13') {
+                callback()
+            }
+        });
+        $('#send').click(callback)
+    });
+    function leave_room() {
+        data = {
+            'event': 'leave',
+            'room': "{{ session['room'] }}",
+            'msg': "The friend leave the chat."
+        }
+        socket.emit('left', data, function () {
+            socket.disconnect();
+
+            window.location.href = "{{ url_for('review_result')}}?to_user_id={{to_user.id}}";
+
+        });
+    }
+</script>
 {% endblock %}

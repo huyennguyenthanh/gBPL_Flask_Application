@@ -16,7 +16,7 @@ from sqlalchemy.sql import func
 
 from app.chat_helpers import *
 
-online_users = [User.query.filter(User.email=="mail0@gmail.com").first()]
+online_users = [] #[User.query.filter(User.email=="mail0@gmail.com").first()]
 online_users_sid = []
 
 @app.route('/')
@@ -285,6 +285,15 @@ def list_review():
     users_review = User.query\
     .filter(Review.fk_user_to == current_user.id)\
     .join(Review, User.id==Review.fk_user_from)\
+    .add_columns(User.name, User.email, User.icon, Review.content, Review.score).all()
+    return render_template('list_review.html', user=current_user, users_review=users_review)
+
+@app.route('/my_review', methods=["GET"])
+def my_review():
+
+    users_review = User.query\
+    .filter(Review.fk_user_from == current_user.id)\
+    .join(Review, User.id==Review.fk_user_to)\
     .add_columns(User.name, User.email, User.icon, Review.content, Review.score).all()
     return render_template('list_review.html', user=current_user, users_review=users_review)
 
