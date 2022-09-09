@@ -66,6 +66,9 @@ def login():
 def signup():
     form = SignupForm()
     if form.validate():
+        if form.password.data != form.password_2.data:
+            flash("Password confirmation is not match.", 'danger')
+            return redirect(url_for('signup'))
         data = {
             "name": form.username.data,
             "email": form.email.data,
@@ -73,10 +76,10 @@ def signup():
         }
         user = User(data)
         try:
-            db.sessocket_appn.add(user)
-            db.sessocket_appn.commit()
+            db.session.add(user)
+            db.session.commit()
         except Exception:
-            db.sessocket_appn.rollback()
+            db.session.rollback()
             flash("The email is existed. Please use another email.", 'danger')
             return redirect(url_for('signup'))
 
