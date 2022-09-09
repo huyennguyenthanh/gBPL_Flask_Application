@@ -19,8 +19,8 @@
                 </li>
             </ul>
             <div class="tab-content" id="ex2-content">
-                <div class="tab-pane fade show active" id="ex3-tabs-1" role="tabpanel" aria-labelledby="ex3-tab-1">{%
-                    for user in users_most_connect %}
+                <div class="tab-pane fade show active" id="ex3-tabs-1" role="tabpanel" aria-labelledby="ex3-tab-1">
+                    {% for user in users_most_connect %}
                     <div class="list-group-item d-flex align-items-center">
                         <p class="mb-0 d-flex">
                             <img src="https://mdbcdn.b-cdn.net/img/new/avatars/2.webp" class="rounded-circle"
@@ -34,7 +34,7 @@
                                 Connect {{ user[1] }} times
                             </div>
                         </div>
-                        {% if user in online_users %}
+                        {% if user[0] in online_users %}
                         <div class="ms-auto">
                             {% set room_name = range(1000, 2000) | random %}
 
@@ -73,7 +73,7 @@
                         </div>
 
 
-                        {% if user in online_users %}
+                        {% if user[0] in online_users %}
                         <div class="ms-auto">
                             {% set room_name = range(1000, 2000) | random %}
 
